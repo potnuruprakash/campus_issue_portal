@@ -41,36 +41,62 @@ def landing_page(request):
     })
 
 
-@login_required_mongo
 def admin_entry_view(request):
-    """Direct entry point for Administrators via /admin."""
+    """Direct entry point for Administrators via /admin or /portal-admin."""
     user = getattr(request, 'portal_user', None)
-    if not user or user.get('role') != 'ADMIN':
-        messages.error(request, "Access denied. This section requires ADMIN privileges.")
-        if user and user.get('role') == 'FACULTY':
+    if not user:
+        return redirect('/admin/login/')
+    if user.get('role') != 'ADMIN':
+        messages.error(request, "Access denied. This section requires ADMINISTRATOR privileges.")
+        if user.get('role') == 'FACULTY':
             return redirect('faculty_dashboard')
-        elif user and user.get('role') == 'STUDENT':
+        elif user.get('role') == 'STUDENT':
             return redirect('student_dashboard')
-        return redirect('/login/?next=/admin/')
+        return redirect('/admin/login/')
     return redirect('admin_dashboard')
 
 
-@login_required_mongo
 def faculty_entry_view(request):
-    """Direct entry point for Faculty via /faculity."""
+    """Direct entry point for Faculty via /faculty or /faculity."""
     user = getattr(request, 'portal_user', None)
-    if not user or user.get('role') != 'FACULTY':
+    if not user:
+        return redirect('/faculty/login/')
+    if user.get('role') != 'FACULTY':
         messages.error(request, "Access denied. This section requires FACULTY privileges.")
-        if user and user.get('role') == 'ADMIN':
+        if user.get('role') == 'ADMIN':
             return redirect('admin_dashboard')
-        elif user and user.get('role') == 'STUDENT':
+        elif user.get('role') == 'STUDENT':
             return redirect('student_dashboard')
-        return redirect('/login/?next=/faculity/')
+        return redirect('/faculty/login/')
     return redirect('faculty_dashboard')
 
 
-def login_view(request):
-    """Handles login for Students, Faculty, and Administrators."""
+def faculty_login_view(request):
+    """Dedicated login view for Faculty staff."""
+    if getattr(request, 'portal_user', None):
+        role = request.portal_user.get('role')
+        if role == 'FACULTY':
+            return redirect('faculty_dashboard')
+        elif role == 'ADMIN':
+            return redirect('admin_dashboard')
+        return redirect('student_dashboard')
+    return login_view(request, forced_role='FACULTY')
+
+
+def admin_login_view(request):
+    """Dedicated login view for Administrators."""
+    if getattr(request, 'portal_user', None):
+        role = request.portal_user.get('role')
+        if role == 'ADMIN':
+            return redirect('admin_dashboard')
+        elif role == 'FACULTY':
+            return redirect('faculty_dashboard')
+        return redirect('student_dashboard')
+    return login_view(request, forced_role='ADMIN')
+
+
+def login_view(request, forced_role=None):
+    """Handles login for Students, Faculty, and Administrators with role-aware presentation."""
     if getattr(request, 'portal_user', None):
         role = request.portal_user.get('role')
         if role == 'ADMIN':
@@ -79,14 +105,30 @@ def login_view(request):
             return redirect('faculty_dashboard')
         return redirect('student_dashboard')
 
+    next_url = request.POST.get('next', '') if request.method == 'POST' else request.GET.get('next', '')
+
+    # Determine initial role: forced_role > ?role= param > next_url hint > default STUDENT
+    initial_role = (forced_role or request.GET.get('role', '')).upper()
+    if initial_role not in ('STUDENT', 'FACULTY', 'ADMIN'):
+        if 'faculty' in next_url.lower() or 'faculity' in next_url.lower():
+            initial_role = 'FACULTY'
+        elif 'admin' in next_url.lower():
+            initial_role = 'ADMIN'
+        else:
+            initial_role = 'STUDENT'
+
     if request.method == 'POST':
         login_id = request.POST.get('login_id', '').strip()
         password = request.POST.get('password', '')
-        next_url = request.POST.get('next', '')
+        selected_role = request.POST.get('selected_role', initial_role).upper()
 
         if not login_id or not password:
             messages.error(request, "Please provide both your email/student ID and password.")
-            return render(request, 'auth/login.html', {'login_id': login_id, 'next': next_url})
+            return render(request, 'auth/login.html', {
+                'login_id': login_id,
+                'next': next_url,
+                'active_role': selected_role
+            })
 
         db = get_db()
         # Allow login by email or student_id
@@ -99,15 +141,27 @@ def login_view(request):
 
         if not user:
             messages.error(request, "Invalid credentials. Please check your email or password.")
-            return render(request, 'auth/login.html', {'login_id': login_id, 'next': next_url})
+            return render(request, 'auth/login.html', {
+                'login_id': login_id,
+                'next': next_url,
+                'active_role': selected_role
+            })
 
         if not user.get('is_active', True):
             messages.error(request, "This account is inactive. Please contact the administrator.")
-            return render(request, 'auth/login.html', {'login_id': login_id, 'next': next_url})
+            return render(request, 'auth/login.html', {
+                'login_id': login_id,
+                'next': next_url,
+                'active_role': selected_role
+            })
 
         if not verify_password(password, user.get('password_hash', '')):
             messages.error(request, "Invalid credentials. Please check your email or password.")
-            return render(request, 'auth/login.html', {'login_id': login_id, 'next': next_url})
+            return render(request, 'auth/login.html', {
+                'login_id': login_id,
+                'next': next_url,
+                'active_role': selected_role
+            })
 
         # Login success
         login_user(request, user)
@@ -124,8 +178,10 @@ def login_view(request):
         else:
             return redirect('student_dashboard')
 
-    next_url = request.GET.get('next', '')
-    return render(request, 'auth/login.html', {'next': next_url})
+    return render(request, 'auth/login.html', {
+        'next': next_url,
+        'active_role': initial_role
+    })
 
 
 def register_view(request):

@@ -9,6 +9,10 @@ urlpatterns = [
     # Public & Auth
     path('', auth_views.landing_page, name='landing'),
     path('login/', auth_views.login_view, name='login'),
+    path('student/login/', auth_views.login_view, name='student_login'),
+    path('faculty/login/', auth_views.faculty_login_view, name='faculty_login'),
+    path('faculity/login/', auth_views.faculty_login_view),
+    path('admin/login/', auth_views.admin_login_view, name='admin_login'),
     path('register/', auth_views.register_view, name='register'),
     path('logout/', auth_views.logout_view, name='logout'),
     path('profile/', auth_views.profile_view, name='profile'),
@@ -18,7 +22,7 @@ urlpatterns = [
     path('admin', auth_views.admin_entry_view),
     path('faculity/', auth_views.faculty_entry_view, name='faculity_direct'),
     path('faculity', auth_views.faculty_entry_view),
-    path('faculty/', auth_views.faculty_entry_view),
+    path('faculty/', auth_views.faculty_entry_view, name='faculty_direct'),
     path('faculty', auth_views.faculty_entry_view),
 
     # Student routes
