@@ -62,14 +62,26 @@ DEBUG = os.getenv(
 # ALLOWED HOSTS
 # ============================================================
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv(
-        "ALLOWED_HOSTS",
-        "localhost,127.0.0.1"
-    ).split(",")
-    if host.strip()
-]
+raw_allowed_hosts = os.getenv(
+    "ALLOWED_HOSTS",
+    "localhost,127.0.0.1,campus-issue-portal.onrender.com,.onrender.com"
+).split(",")
+
+ALLOWED_HOSTS = []
+for host in raw_allowed_hosts:
+    host = host.strip()
+    if host:
+        # Strip scheme and path if accidentally included in env
+        host = host.replace("https://", "").replace("http://", "").split("/")[0].strip()
+        if host and host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(host)
+
+# Automatically add Render external hostname if provided by Render environment
+render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if render_host:
+    render_host_clean = render_host.replace("https://", "").replace("http://", "").split("/")[0].strip()
+    if render_host_clean and render_host_clean not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(render_host_clean)
 
 
 # ============================================================
@@ -77,20 +89,24 @@ ALLOWED_HOSTS = [
 # ============================================================
 
 # Required for HTTPS POST requests when deployed on Render.
-#
-# Render environment variable example:
-#
-# CSRF_TRUSTED_ORIGINS=https://campus-issue-portal.onrender.com
-#
+raw_csrf = os.getenv(
+    "CSRF_TRUSTED_ORIGINS",
+    "https://campus-issue-portal.onrender.com,https://*.onrender.com"
+).split(",")
 
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv(
-        "CSRF_TRUSTED_ORIGINS",
-        ""
-    ).split(",")
-    if origin.strip()
-]
+CSRF_TRUSTED_ORIGINS = []
+for origin in raw_csrf:
+    origin = origin.strip().rstrip("/")
+    if origin:
+        if not (origin.startswith("https://") or origin.startswith("http://")):
+            origin = f"https://{origin}"
+        if origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)
+
+if render_host:
+    render_origin = f"https://{render_host_clean}"
+    if render_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(render_origin)
 
 
 # ============================================================

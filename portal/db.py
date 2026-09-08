@@ -17,13 +17,20 @@ def get_mongo_client():
     global _client
     if _client is None:
         uri = getattr(settings, 'MONGO_URI', os.getenv('MONGO_URI', 'mongodb://localhost:27017/'))
-        _client = MongoClient(
-            uri,
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=5000,
-            maxPoolSize=50,
-            minPoolSize=5
-        )
+        client_kwargs = {
+            "serverSelectionTimeoutMS": 5000,
+            "connectTimeoutMS": 5000,
+            "maxPoolSize": 50,
+            "minPoolSize": 5,
+        }
+        # If connecting to MongoDB Atlas (srv) or TLS-enabled Mongo, provide certifi CA bundle
+        if "mongodb+srv://" in uri or "ssl=true" in uri.lower() or "tls=true" in uri.lower():
+            try:
+                import certifi
+                client_kwargs["tlsCAFile"] = certifi.where()
+            except Exception:
+                pass
+        _client = MongoClient(uri, **client_kwargs)
     return _client
 
 
