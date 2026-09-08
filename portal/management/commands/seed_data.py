@@ -47,7 +47,7 @@ class Command(BaseCommand):
                 "email": "admin@campus.edu",
                 "role": "ADMIN",
                 "department": "Campus Operations",
-                "password_hash": hash_password("admin123"),
+                "password_hash": hash_password("admin@123"),
                 "is_active": True,
                 "created_at": now,
                 "updated_at": now

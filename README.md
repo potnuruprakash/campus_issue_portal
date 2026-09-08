@@ -134,11 +134,11 @@ Access the portal locally at:
 
 ## 🔑 Demo Review Accounts (Pre-seeded)
 
-Use the 1-click **Quick Demo Fill** buttons on the `/login/` screen or enter credentials manually:
+Sign in using your account credentials:
 
 | Role | Email | Password | Scope & Permissions |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@campus.edu` | `admin123` | Full command center, user management, faculty roster, categories, reports & CSV export |
+| **Administrator** | `admin@campus.edu` | `admin@123` | Full command center, user management, faculty roster, categories, reports & CSV export |
 | **Faculty (CSE)** | `faculty.cse@campus.edu` | `faculty123` | Department queue, verification, assigned issues, status progression, resolution notes |
 | **Student** | `alex.student@campus.edu` | `student123` | Report issues with evidence, visual tracking timeline, staff inquiries, 5-star feedback |
 

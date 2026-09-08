@@ -74,7 +74,7 @@ def ensure_baseline_data(db):
         # 2. Ensure at least one Administrator exists if database has no admins
         if db.users.count_documents({"role": "ADMIN"}) == 0:
             admin_email = os.getenv("ADMIN_EMAIL", "admin@campus.edu").strip().lower()
-            admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+            admin_password = os.getenv("ADMIN_PASSWORD", "admin@123")
             admin_name = os.getenv("ADMIN_NAME", "Campus Operations Admin").strip()
 
             db.users.update_one(
