@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Sign In - MVGR Campus Issue Portal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="text-center mb-3">
+        <a href="{% url 'landing' %}" class="text-decoration-none text-muted small">
+          <i class="bi bi-arrow-left me-1"></i> Back to MVGR Campus Portal Home
+        </a>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="p-4 text-white text-center" style="background: linear-gradient(135deg, #0b1f3a 0%, #1e3a8a 100%) !important;">
+          <div class="mvgr-crest-badge mx-auto mb-2" style="width: 52px; height: 52px; font-size: 1.5rem;">
+            <i class="bi bi-mortarboard-fill"></i>
+          </div>
+          <h1 class="h4 fw-bold mb-1">Student Sign In</h1>
+          <p class="small text-white-50 mb-0">Maharaj Vijayaram Gajapathi Raj College of Engineering</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+          <form method="POST" action="{% url 'login' %}" id="loginForm">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <div class="mb-3">
+              <label for="login_id" class="form-label small fw-bold text-secondary">Email or Student ID (Roll No.)</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="bi bi-person-badge"></i></span>
+                <input type="text" class="form-control" id="login_id" name="login_id" value="{{ login_id|default:'' }}" placeholder="e.g. alex.student@campus.edu or STU-2026-00101" required autofocus>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="password" class="form-label small fw-bold text-secondary">Password</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password" aria-label="Toggle password visibility">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold mb-3" id="loginSubmitBtn">
+              <span class="spinner-border spinner-border-sm me-2 d-none" id="loginSpinner" role="status" aria-hidden="true"></span>
+              Sign In to Portal
+            </button>
+
+            <div class="text-center small text-muted">
+              New MVGR Student? <a href="{% url 'register' %}" class="fw-semibold text-primary text-decoration-none">Register Student Account</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('loginForm').addEventListener('submit', () => {
+  const btn = document.getElementById('loginSubmitBtn');
+  const spinner = document.getElementById('loginSpinner');
+  if (btn && spinner) {
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+  }
+});
+</script>
+{% endblock %}

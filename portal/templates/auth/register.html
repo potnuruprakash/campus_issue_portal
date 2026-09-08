@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Registration - MVGR Campus Issue Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="text-center mb-3">
+        <a href="{% url 'landing' %}" class="text-decoration-none text-muted small">
+          <i class="bi bi-arrow-left me-1"></i> Back to MVGR Campus Portal Home
+        </a>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="p-4 text-white text-center" style="background: linear-gradient(135deg, #0b1f3a 0%, #1e3a8a 100%) !important;">
+          <div class="mvgr-crest-badge mx-auto mb-2" style="width: 52px; height: 52px; font-size: 1.5rem;">
+            <i class="bi bi-mortarboard-fill"></i>
+          </div>
+          <h1 class="h4 fw-bold mb-1">Student Registration</h1>
+          <p class="small text-white-50 mb-0">Maharaj Vijayaram Gajapathi Raj College of Engineering (MVGRCE)</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+          <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="name" class="form-label small fw-bold text-secondary">Full Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name|default:'' }}" placeholder="e.g. Alex Johnson" required>
+              </div>
+              <div class="col-md-6">
+                <label for="student_id" class="form-label small fw-bold text-secondary">Student ID / Roll No. <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="student_id" name="student_id" value="{{ form_data.student_id|default:'' }}" placeholder="e.g. STU-2026-101" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label small fw-bold text-secondary">Campus Email Address <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email|default:'' }}" placeholder="student@campus.edu" required>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-7">
+                <label for="department" class="form-label small fw-bold text-secondary">Department <span class="text-danger">*</span></label>
+                <select class="form-select" id="department" name="department" required>
+                  <option value="" disabled {% if not form_data.department %}selected{% endif %}>Select department...</option>
+                  {% for dept in departments %}
+                    <option value="{{ dept }}" {% if form_data.department == dept %}selected{% endif %}>{{ dept }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-5">
+                <label for="year" class="form-label small fw-bold text-secondary">Year of Study <span class="text-danger">*</span></label>
+                <select class="form-select" id="year" name="year" required>
+                  <option value="" disabled {% if not form_data.year %}selected{% endif %}>Select year...</option>
+                  <option value="1st Year" {% if form_data.year == '1st Year' %}selected{% endif %}>1st Year</option>
+                  <option value="2nd Year" {% if form_data.year == '2nd Year' %}selected{% endif %}>2nd Year</option>
+                  <option value="3rd Year" {% if form_data.year == '3rd Year' %}selected{% endif %}>3rd Year</option>
+                  <option value="4th Year" {% if form_data.year == '4th Year' %}selected{% endif %}>4th Year</option>
+                  <option value="Postgraduate" {% if form_data.year == 'Postgraduate' %}selected{% endif %}>Postgraduate</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="password" class="form-label small fw-bold text-secondary">Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="password" name="password" minlength="6" placeholder="Min 6 characters" required>
+                  <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label for="confirm_password" class="form-label small fw-bold text-secondary">Confirm Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="confirm_password" name="confirm_password" minlength="6" placeholder="Re-enter password" required>
+                  <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirm_password">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-light border small text-muted mb-4 py-2">
+              <i class="bi bi-shield-lock-fill text-primary me-1"></i>
+              Faculty and Administrator accounts are provisioned exclusively by University IT Administration.
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold mb-3">
+              Register Student Account
+            </button>
+
+            <div class="text-center small text-muted">
+              Already have an account? <a href="{% url 'login' %}" class="fw-semibold text-primary text-decoration-none">Sign In</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

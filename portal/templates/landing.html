@@ -1,0 +1,588 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MVGR Campus Issue Portal | Maharaj Vijayaram Gajapathi Raj College of Engineering</title>
+  
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Custom Design System -->
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+  
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body id="home" style="background-color: var(--background);">
+
+<!-- ==========================================
+     1. STICKY PUBLIC NAVBAR (STUDENTS ONLY)
+     ========================================== -->
+<nav class="navbar navbar-expand-lg mvgr-public-navbar">
+  <div class="container">
+    <!-- Brand -->
+    <a class="mvgr-brand-container" href="#home">
+      <div class="mvgr-crest-badge">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+      <div>
+        <div class="mvgr-brand-title">MVGR Campus Issue Portal</div>
+        <div class="mvgr-brand-sub d-none d-sm-block">Maharaj Vijayaram Gajapathi Raj College of Engineering</div>
+      </div>
+    </a>
+
+    <!-- Mobile Hamburger Toggle -->
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mvgrNav" aria-controls="mvgrNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Nav Links & Student CTAs -->
+    <div class="collapse navbar-collapse" id="mvgrNav">
+      <ul class="navbar-nav mx-auto mvgr-nav-links my-2 my-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="#home">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#how-it-works">How It Works</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#categories">Issue Categories</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#contact">Contact</a>
+        </li>
+      </ul>
+
+      <!-- Exclusively Student Authentication CTAs -->
+      <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+        {% if current_user %}
+          <a href="{% if current_user.role == 'STUDENT' %}{% url 'student_dashboard' %}{% elif current_user.role == 'FACULTY' %}{% url 'faculty_dashboard' %}{% else %}{% url 'admin_dashboard' %}{% endif %}" class="mvgr-nav-btn-login">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+          </a>
+          <a href="{% url 'logout' %}" class="mvgr-nav-btn-register">
+            Log Out
+          </a>
+        {% else %}
+          <a href="{% url 'login' %}" class="mvgr-nav-btn-login">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Student Login
+          </a>
+          <a href="{% url 'register' %}" class="mvgr-nav-btn-register">
+            <i class="bi bi-person-plus me-1"></i> Student Registration
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- System Alert Messages -->
+{% if messages %}
+<div class="container mt-3">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center shadow-sm" role="alert">
+      <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+      <div>{{ message }}</div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ==========================================
+     2. HERO SECTION (PREFERRED SPLIT LAYOUT)
+     ========================================== -->
+<header class="mvgr-hero-split">
+  <div class="container">
+    <div class="row align-items-center g-4 g-lg-5">
+      <!-- Left Column: Typography & CTAs -->
+      <div class="col-lg-6">
+        <!-- Eyebrow -->
+        <div class="mvgr-hero-eyebrow">
+          <i class="bi bi-shield-check me-1"></i> MVGR COLLEGE OF ENGINEERING
+        </div>
+
+        <!-- Large Heading -->
+        <h1 class="mvgr-hero-heading">
+          MVGR Campus Issue Portal
+        </h1>
+
+        <!-- Supporting Heading -->
+        <div class="mvgr-hero-support-heading">
+          Report. Track. Resolve.
+        </div>
+
+        <!-- Description -->
+        <p class="mvgr-hero-description">
+          A dedicated platform for MVGR students to report campus issues, track their progress, and contribute to a better campus experience.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="mvgr-hero-actions">
+          {% if current_user and current_user.role == 'STUDENT' %}
+            <a href="{% url 'student_dashboard' %}" class="btn btn-primary btn-lg px-4">
+              <i class="bi bi-speedometer2 me-2"></i>Go to Student Dashboard
+            </a>
+            <a href="{% url 'student_report_issue' %}" class="btn btn-outline-light btn-lg px-4">
+              <i class="bi bi-plus-circle me-2"></i>Report New Issue
+            </a>
+          {% else %}
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Student Login
+            </a>
+            <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg px-4">
+              <i class="bi bi-person-plus me-2"></i>Student Registration
+            </a>
+          {% endif %}
+
+          <a href="#how-it-works" class="mvgr-learn-link">
+            Learn how it works <i class="bi bi-arrow-down-short fs-5"></i>
+          </a>
+        </div>
+
+        <!-- Campus Location Note -->
+        <div class="mt-4 pt-3 border-top border-white border-opacity-10 d-flex align-items-center gap-2 small text-white-50">
+          <i class="bi bi-geo-alt text-warning"></i>
+          <span>Vijayaram Nagar Campus &bull; Vizianagaram, Andhra Pradesh</span>
+        </div>
+      </div>
+
+      <!-- Right Column: Official MVGR Campus Photograph -->
+      <div class="col-lg-6">
+        <div class="mvgr-campus-frame">
+          <picture>
+            <source srcset="{% static 'images/mvgr_campus.webp' %}" type="image/webp">
+            <img src="{% static 'images/mvgr_campus.jpg' %}" alt="MVGR College of Engineering campus in Vizianagaram" class="mvgr-campus-photo" loading="eager">
+          </picture>
+          <!-- Frame Badge Overlay -->
+          <div class="mvgr-photo-badge">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-building-check text-warning fs-5"></i>
+              <div>
+                <div class="fw-bold small text-white">MVGR Academic Campus</div>
+                <div class="text-white-50" style="font-size: 0.75rem;">Main Academic Block & Central Courtyard</div>
+              </div>
+            </div>
+            <span class="badge bg-warning text-dark font-monospace" style="font-size: 0.7rem;">VIZIANAGARAM</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ==========================================
+     3. ABOUT THE PORTAL (4 CONCISE BENEFITS)
+     ========================================== -->
+<section id="about" class="mvgr-section bg-light border-bottom">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="mvgr-section-badge">Campus Issue Management Platform</span>
+      <h2 class="mvgr-section-title">One Platform for a Better Campus</h2>
+      <p class="mvgr-section-subtitle">
+        The MVGR Campus Issue Portal provides a structured way for students to report campus-related problems and follow their resolution from submission to closure.
+      </p>
+    </div>
+
+    <!-- 4 Concise Benefits -->
+    <div class="row g-4">
+      <!-- 01 Easy Reporting -->
+      <div class="col-md-6 col-lg-3">
+        <div class="mvgr-value-card">
+          <div class="mvgr-value-icon">
+            <i class="bi bi-pencil-square"></i>
+          </div>
+          <div class="text-muted fw-bold small mb-1" style="font-size: 0.75rem;">01</div>
+          <h3 class="h5 fw-bold mb-2">Easy Reporting</h3>
+          <p class="text-muted small mb-0">
+            Submit classroom, laboratory, hostel, or network issues in seconds with exact location details and evidence attachments.
+          </p>
+        </div>
+      </div>
+
+      <!-- 02 Transparent Tracking -->
+      <div class="col-md-6 col-lg-3">
+        <div class="mvgr-value-card">
+          <div class="mvgr-value-icon">
+            <i class="bi bi-binoculars"></i>
+          </div>
+          <div class="text-muted fw-bold small mb-1" style="font-size: 0.75rem;">02</div>
+          <h3 class="h5 fw-bold mb-2">Transparent Tracking</h3>
+          <p class="text-muted small mb-0">
+            Follow live lifecycle updates from initial submission through verification, assignment, and verified resolution.
+          </p>
+        </div>
+      </div>
+
+      <!-- 03 Faster Resolution -->
+      <div class="col-md-6 col-lg-3">
+        <div class="mvgr-value-card">
+          <div class="mvgr-value-icon">
+            <i class="bi bi-lightning-charge"></i>
+          </div>
+          <div class="text-muted fw-bold small mb-1" style="font-size: 0.75rem;">03</div>
+          <h3 class="h5 fw-bold mb-2">Faster Resolution</h3>
+          <p class="text-muted small mb-0">
+            Automated routing directs reported problems directly to the responsible departmental coordinators and campus maintenance squads.
+          </p>
+        </div>
+      </div>
+
+      <!-- 04 Better Communication -->
+      <div class="col-md-6 col-lg-3">
+        <div class="mvgr-value-card">
+          <div class="mvgr-value-icon">
+            <i class="bi bi-chat-left-dots"></i>
+          </div>
+          <div class="text-muted fw-bold small mb-1" style="font-size: 0.75rem;">04</div>
+          <h3 class="h5 fw-bold mb-2">Better Communication</h3>
+          <p class="text-muted small mb-0">
+            Exchange direct follow-up inquiries, progress notes, and receive automated notifications at every workflow milestone.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     4. HOW IT WORKS (3-STEP WORKFLOW)
+     ========================================== -->
+<section id="how-it-works" class="mvgr-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="mvgr-section-badge">Student Resolution Lifecycle</span>
+      <h2 class="mvgr-section-title">How It Works</h2>
+      <p class="mvgr-section-subtitle">
+        A structured three-step workflow designed to resolve student concerns with speed and accountability.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <!-- 01 — REPORT -->
+      <div class="col-md-4">
+        <div class="mvgr-step-card">
+          <div class="mvgr-step-number">01</div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-send-fill text-primary fs-5"></i>
+            <h3 class="h5 fw-bold mb-0">REPORT</h3>
+          </div>
+          <p class="text-secondary small mb-0" style="line-height: 1.6;">
+            Submit a campus issue with its category, location, description, and supporting information.
+          </p>
+        </div>
+      </div>
+
+      <!-- 02 — TRACK -->
+      <div class="col-md-4">
+        <div class="mvgr-step-card">
+          <div class="mvgr-step-number">02</div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-activity text-info fs-5"></i>
+            <h3 class="h5 fw-bold mb-0">TRACK</h3>
+          </div>
+          <p class="text-secondary small mb-0" style="line-height: 1.6;">
+            Follow the status of your reported issue as it moves through the resolution process.
+          </p>
+        </div>
+      </div>
+
+      <!-- 03 — RESOLVE -->
+      <div class="col-md-4">
+        <div class="mvgr-step-card">
+          <div class="mvgr-step-number">03</div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <h3 class="h5 fw-bold mb-0">RESOLVE</h3>
+          </div>
+          <p class="text-secondary small mb-0" style="line-height: 1.6;">
+            The responsible team reviews, works on, and updates the issue until resolution.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     5. STUDENT JOURNEY (USER FLOW)
+     ========================================== -->
+<section id="journey" class="mvgr-section bg-light border-top border-bottom py-5">
+  <div class="container">
+    <div class="text-center mb-4">
+      <span class="mvgr-section-badge">Seamless Experience</span>
+      <h2 class="mvgr-section-title h3 mb-2">Student Journey</h2>
+      <p class="mvgr-section-subtitle small">
+        Clear end-to-end pathway from issue identification to verified feedback.
+      </p>
+    </div>
+
+    <!-- Visual Journey Flow Strip -->
+    <div class="row g-2 align-items-center justify-content-center">
+      <!-- 1 -->
+      <div class="col-6 col-md-3 col-lg">
+        <div class="mvgr-journey-step">
+          <div class="mvgr-journey-icon"><i class="bi bi-house"></i></div>
+          <div class="mvgr-journey-title">Home</div>
+          <div class="mvgr-journey-sub">Explore portal</div>
+        </div>
+      </div>
+      <!-- 2 -->
+      <div class="col-6 col-md-3 col-lg">
+        <div class="mvgr-journey-step">
+          <div class="mvgr-journey-icon"><i class="bi bi-person-lock"></i></div>
+          <div class="mvgr-journey-title">Login / Register</div>
+          <div class="mvgr-journey-sub">Student account</div>
+        </div>
+      </div>
+      <!-- 3 -->
+      <div class="col-6 col-md-3 col-lg">
+        <div class="mvgr-journey-step">
+          <div class="mvgr-journey-icon"><i class="bi bi-speedometer2"></i></div>
+          <div class="mvgr-journey-title">Dashboard</div>
+          <div class="mvgr-journey-sub">Active overview</div>
+        </div>
+      </div>
+      <!-- 4 -->
+      <div class="col-6 col-md-3 col-lg">
+        <div class="mvgr-journey-step">
+          <div class="mvgr-journey-icon"><i class="bi bi-plus-circle"></i></div>
+          <div class="mvgr-journey-title">Report Issue</div>
+          <div class="mvgr-journey-sub">Details & photos</div>
+        </div>
+      </div>
+      <!-- 5 -->
+      <div class="col-6 col-md-3 col-lg">
+        <div class="mvgr-journey-step">
+          <div class="mvgr-journey-icon"><i class="bi bi-search"></i></div>
+          <div class="mvgr-journey-title">Track Status</div>
+          <div class="mvgr-journey-sub">Live timeline</div>
+        </div>
+      </div>
+      <!-- 6 -->
+      <div class="col-6 col-md-3 col-lg">
+        <div class="mvgr-journey-step">
+          <div class="mvgr-journey-icon"><i class="bi bi-tools"></i></div>
+          <div class="mvgr-journey-title">Resolution</div>
+          <div class="mvgr-journey-sub">Verified fix</div>
+        </div>
+      </div>
+      <!-- 7 -->
+      <div class="col-6 col-md-3 col-lg">
+        <div class="mvgr-journey-step">
+          <div class="mvgr-journey-icon"><i class="bi bi-star"></i></div>
+          <div class="mvgr-journey-title">Feedback</div>
+          <div class="mvgr-journey-sub">5-Star rating</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     6. ISSUE CATEGORIES
+     ========================================== -->
+<section id="categories" class="mvgr-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="mvgr-section-badge">Campus Facilities & Operations</span>
+      <h2 class="mvgr-section-title">Issue Categories</h2>
+      <p class="mvgr-section-subtitle">
+        Common categories available for MVGR students to report academic, infrastructure, and facility problems.
+      </p>
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-6 g-3">
+      <!-- 1 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-easel"></i></div>
+          <div class="mvgr-cat-title">Classroom</div>
+        </div>
+      </div>
+      <!-- 2 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-cpu"></i></div>
+          <div class="mvgr-cat-title">Laboratory</div>
+        </div>
+      </div>
+      <!-- 3 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-house-door"></i></div>
+          <div class="mvgr-cat-title">Hostel</div>
+        </div>
+      </div>
+      <!-- 4 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-book"></i></div>
+          <div class="mvgr-cat-title">Library</div>
+        </div>
+      </div>
+      <!-- 5 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-wifi"></i></div>
+          <div class="mvgr-cat-title">Internet / Wi-Fi</div>
+        </div>
+      </div>
+      <!-- 6 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-lightning-charge"></i></div>
+          <div class="mvgr-cat-title">Electricity</div>
+        </div>
+      </div>
+      <!-- 7 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-droplet"></i></div>
+          <div class="mvgr-cat-title">Water</div>
+        </div>
+      </div>
+      <!-- 8 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-trash3"></i></div>
+          <div class="mvgr-cat-title">Cleanliness</div>
+        </div>
+      </div>
+      <!-- 9 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-bus-front"></i></div>
+          <div class="mvgr-cat-title">Transport</div>
+        </div>
+      </div>
+      <!-- 10 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-building-gear"></i></div>
+          <div class="mvgr-cat-title">Infrastructure</div>
+        </div>
+      </div>
+      <!-- 11 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-shield-check"></i></div>
+          <div class="mvgr-cat-title">Security</div>
+        </div>
+      </div>
+      <!-- 12 -->
+      <div class="col">
+        <div class="mvgr-cat-card">
+          <div class="mvgr-cat-icon"><i class="bi bi-tags"></i></div>
+          <div class="mvgr-cat-title">Other</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     7. REPORT ISSUE CTA
+     ========================================== -->
+<section class="py-5 bg-light border-top">
+  <div class="container">
+    <div class="mvgr-cta-box text-center">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <h2 class="display-6 fw-bold mb-3 text-white">Have a Campus Issue?</h2>
+          <p class="lead mb-4 text-white-50" style="max-width: 600px; margin: 0 auto;">
+            Report it through the MVGR Campus Issue Portal and keep track of its progress.
+          </p>
+          <a href="{% if current_user and current_user.role == 'STUDENT' %}{% url 'student_report_issue' %}{% else %}{% url 'login' %}?next={% url 'student_report_issue' %}{% endif %}" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-plus-circle-fill me-2"></i>Report an Issue
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     8. INSTITUTIONAL FOOTER (STUDENT / GENERAL)
+     ========================================== -->
+<footer id="contact" class="mvgr-footer">
+  <div class="container">
+    <div class="row g-4 mb-4">
+      <!-- Col 1: MVGR Identity -->
+      <div class="col-lg-5">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="mvgr-crest-badge" style="width: 38px; height: 38px; font-size: 1.15rem;">
+            <i class="bi bi-mortarboard-fill"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-white fs-6">MVGR Campus Issue Portal</div>
+            <div class="small text-muted">MAHARAJ VIJAYARAM GAJAPATHI RAJ COLLEGE OF ENGINEERING</div>
+          </div>
+        </div>
+        <p class="small text-secondary mb-3" style="max-width: 420px; line-height: 1.6;">
+          An institutional platform for MVGR students to report problems, follow remediation milestones, and partner with administration for campus excellence.
+        </p>
+        <div class="small text-secondary">
+          <i class="bi bi-geo-alt-fill text-warning me-2"></i>
+          Vijayaram Nagar Campus, Chintalavalasa, Vizianagaram, Andhra Pradesh - 535005
+        </div>
+      </div>
+
+      <!-- Col 2: Quick Navigation -->
+      <div class="col-sm-6 col-lg-3 offset-lg-1">
+        <h6>General Navigation</h6>
+        <ul class="mvgr-footer-links">
+          <li><a href="#home"><i class="bi bi-chevron-right me-1 small"></i> Home</a></li>
+          <li><a href="#about"><i class="bi bi-chevron-right me-1 small"></i> About</a></li>
+          <li><a href="#how-it-works"><i class="bi bi-chevron-right me-1 small"></i> How It Works</a></li>
+          <li><a href="#categories"><i class="bi bi-chevron-right me-1 small"></i> Issue Categories</a></li>
+          <li><a href="#contact"><i class="bi bi-chevron-right me-1 small"></i> Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Student Links & Support -->
+      <div class="col-sm-6 col-lg-3">
+        <h6>Student Access</h6>
+        <ul class="mvgr-footer-links">
+          <li><a href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-1 small"></i> Student Login</a></li>
+          <li><a href="{% url 'register' %}"><i class="bi bi-person-plus me-1 small"></i> Student Registration</a></li>
+          <li class="mt-3 text-secondary small">
+            <i class="bi bi-envelope me-1 text-primary"></i> issues@mvgrce.edu.in
+          </li>
+          <li class="text-secondary small">
+            <i class="bi bi-telephone me-1 text-primary"></i> +91 8922 241732 / 241039
+          </li>
+          <li class="mt-3">
+            <a href="https://www.mvgrce.com" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary text-white py-1 px-3">
+              <i class="bi bi-globe me-1"></i> Visit MVGR Website
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Copyright & Disclaimer -->
+    <div class="pt-4 mt-4 border-top border-secondary border-opacity-25 d-flex flex-wrap justify-content-between align-items-center gap-2 small">
+      <div>
+        &copy; 2026 Maharaj Vijayaram Gajapathi Raj College of Engineering (MVGR). All rights reserved.
+      </div>
+      <div class="text-secondary">
+        Vijayaram Nagar Campus, Chintalavalasa, Vizianagaram, Andhra Pradesh
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/portal.js' %}"></script>
+</body>
+</html>

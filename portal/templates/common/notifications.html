@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications - Campus Issue Portal{% endblock %}
+{% block breadcrumb %}Account / Notifications{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1">Notifications & Activity Feed</h1>
+    <p class="text-muted mb-0">Live status alerts, staff assignments, and resolution updates.</p>
+  </div>
+  {% if unread_count > 0 %}
+    <a href="{% url 'mark_all_notifications_read' %}" class="btn btn-outline-primary btn-sm fw-semibold">
+      <i class="bi bi-check2-all me-1"></i>Mark All as Read
+    </a>
+  {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width: 850px;">
+  <div class="card-body p-0">
+    {% if notifications %}
+      <div class="list-group list-group-flush">
+        {% for n in notifications %}
+          <div class="list-group-item p-3 d-flex align-items-start gap-3 {% if not n.is_read %}bg-light{% endif %}">
+            <div class="stat-icon-box mt-1 {% if n.type == 'danger' %}bg-danger-subtle text-danger{% elif n.type == 'warning' %}bg-warning-subtle text-warning{% elif n.type == 'success' %}bg-success-subtle text-success{% else %}bg-primary-subtle text-primary{% endif %}" style="width: 36px; height: 36px; font-size: 1rem;">
+              {% if n.type == 'danger' %}
+                <i class="bi bi-exclamation-octagon"></i>
+              {% elif n.type == 'success' %}
+                <i class="bi bi-check-circle"></i>
+              {% elif n.type == 'warning' %}
+                <i class="bi bi-bell-fill"></i>
+              {% else %}
+                <i class="bi bi-info-circle"></i>
+              {% endif %}
+            </div>
+
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <h2 class="h6 fw-bold mb-0 text-dark">{{ n.title }}</h2>
+                <span class="text-muted small" style="font-size: 0.75rem;">{{ n.created_at|date:"M d, Y - H:i" }}</span>
+              </div>
+              <p class="small text-secondary mb-2">{{ n.message }}</p>
+
+              <div class="d-flex align-items-center gap-2">
+                {% if n.link %}
+                  <a href="{% url 'mark_notification_read' n.id %}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
+                    View Issue <i class="bi bi-arrow-right ms-1"></i>
+                  </a>
+                {% endif %}
+                {% if not n.is_read %}
+                  <span class="badge bg-primary-subtle text-primary" style="font-size: 0.7rem;">Unread</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-bell-slash fs-1 d-block mb-2 text-secondary"></i>
+        <div class="fw-semibold">No notifications in your inbox.</div>
+        <div class="small">You will be notified when actions occur on your issues.</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

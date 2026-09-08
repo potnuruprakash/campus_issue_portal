@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report New Issue{% endblock %}
+{% block breadcrumb %}Student Portal / Report New Issue{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 900px;">
+  <div class="mb-4">
+    <a href="{% url 'student_dashboard' %}" class="text-decoration-none text-muted small">
+      <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+    </a>
+    <h1 class="h3 fw-bold mt-2 mb-1">Report Campus Issue</h1>
+    <p class="text-muted">Submit an infrastructure, safety, or academic problem for staff investigation.</p>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4 p-md-5">
+      <form method="POST" action="{% url 'student_report_issue' %}" enctype="multipart/form-data" id="reportIssueForm">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <div class="mb-4">
+          <label for="title" class="form-label fw-bold small text-secondary">
+            Issue Title <span class="text-danger">*</span>
+          </label>
+          <input type="text" class="form-control form-control-lg" id="title" name="title" value="{{ form_data.title|default:'' }}" placeholder="e.g. Broken projector in CSE Lab 3 or Water leakage in Hostel B Block" required autofocus>
+          <div class="form-text small">Provide a concise, specific summary of the problem.</div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <!-- Category -->
+          <div class="col-md-6">
+            <label for="category" class="form-label fw-bold small text-secondary">
+              Category <span class="text-danger">*</span>
+            </label>
+            <select class="form-select" id="category" name="category" required>
+              <option value="" disabled {% if not form_data.category %}selected{% endif %}>Select category...</option>
+              {% for cat in categories %}
+                <option value="{{ cat.name }}" {% if form_data.category == cat.name %}selected{% endif %}>
+                  {{ cat.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Priority -->
+          <div class="col-md-6">
+            <label for="priority" class="form-label fw-bold small text-secondary">
+              Priority Level <span class="text-danger">*</span>
+            </label>
+            <select class="form-select" id="priority" name="priority" required>
+              <option value="LOW" {% if form_data.priority == 'LOW' %}selected{% endif %}>Low - Minor cosmetic or non-urgent defect</option>
+              <option value="MEDIUM" {% if not form_data.priority or form_data.priority == 'MEDIUM' %}selected{% endif %}>Medium - Normal operational disruption</option>
+              <option value="HIGH" {% if form_data.priority == 'HIGH' %}selected{% endif %}>High - Significant disruption to campus activities</option>
+              <option value="CRITICAL" {% if form_data.priority == 'CRITICAL' %}selected{% endif %}>Critical - Immediate safety hazard or complete outage</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="mb-4">
+          <label for="location" class="form-label fw-bold small text-secondary">
+            Exact Location <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light text-muted"><i class="bi bi-geo-alt"></i></span>
+            <input type="text" class="form-control" id="location" name="location" value="{{ form_data.location|default:'' }}" placeholder="e.g. Block C, 3rd Floor, Room 304 or Girls Hostel Mess" required>
+          </div>
+          <div class="form-text small">Help maintenance staff locate the issue quickly.</div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4">
+          <label for="description" class="form-label fw-bold small text-secondary">
+            Detailed Description <span class="text-danger">*</span>
+          </label>
+          <textarea class="form-control" id="description" name="description" rows="5" placeholder="Explain what is happening, when it started, and any symptoms or safety concerns..." required>{{ form_data.description|default:'' }}</textarea>
+        </div>
+
+        <!-- Attachment -->
+        <div class="mb-4">
+          <label for="attachment" class="form-label fw-bold small text-secondary">
+            Evidence / Photo Attachment (Optional)
+          </label>
+          <input class="form-control" type="file" id="attachment" name="attachment" accept="image/*,.pdf,.doc,.docx">
+          <div class="form-text small">Supported formats: JPG, PNG, WEBP, PDF, DOCX (Max 5MB).</div>
+        </div>
+
+        <!-- Notice Box -->
+        <div class="alert alert-light border d-flex align-items-start gap-2 mb-4 p-3">
+          <i class="bi bi-shield-check text-primary fs-5 mt-1"></i>
+          <div class="small text-muted">
+            Upon submission, a unique tracking ID (e.g. <code>ISS-2026-XXXXX</code>) will be generated. You will receive real-time notifications as staff verifies, assigns, and resolves the issue.
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex flex-wrap justify-content-end gap-2">
+          <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+          <button type="submit" class="btn btn-primary px-4 fw-semibold" id="submitIssueBtn">
+            <span class="spinner-border spinner-border-sm me-2 d-none" id="submitSpinner"></span>
+            Submit Issue
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('reportIssueForm').addEventListener('submit', () => {
+  const btn = document.getElementById('submitIssueBtn');
+  const spinner = document.getElementById('submitSpinner');
+  if (btn && spinner) {
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+  }
+});
+</script>
+{% endblock %}

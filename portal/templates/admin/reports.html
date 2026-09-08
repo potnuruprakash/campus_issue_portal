@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System Reports & Exports - Administrator{% endblock %}
+{% block breadcrumb %}Administration / Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1">Campus Resolution Audit & Reports</h1>
+    <p class="text-muted mb-0">Quantitative breakdowns, operational performance, and full CSV export capabilities.</p>
+  </div>
+  <a href="{% url 'export_issues_csv' %}" class="btn btn-primary fw-semibold px-4">
+    <i class="bi bi-file-earmark-spreadsheet me-2"></i>Download Full CSV Audit Report
+  </a>
+</div>
+
+<!-- Key Performance Stat Strip -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Total Submissions</div>
+        <div class="stat-number">{{ total_issues }}</div>
+      </div>
+      <div class="stat-icon-box bg-primary-subtle text-primary">
+        <i class="bi bi-archive-fill"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Resolved / Addressed</div>
+        <div class="stat-number text-success">{{ resolved_issues }}</div>
+      </div>
+      <div class="stat-icon-box bg-success-subtle text-success">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Pending Review</div>
+        <div class="stat-number text-warning">{{ pending_issues }}</div>
+      </div>
+      <div class="stat-icon-box bg-warning-subtle text-warning">
+        <i class="bi bi-hourglass-top"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Active Remediation</div>
+        <div class="stat-number text-info">{{ in_progress_issues }}</div>
+      </div>
+      <div class="stat-icon-box bg-info-subtle text-info">
+        <i class="bi bi-tools"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Issues by Department -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <h2 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-building me-2 text-primary"></i>Volume by Department
+        </h2>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th class="text-end">Issues Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in by_dept %}
+                <tr>
+                  <td class="fw-semibold text-dark">{{ d.name }}</td>
+                  <td class="text-end fw-bold text-primary">{{ d.count }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="2" class="text-center py-3 text-muted">No records</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Issues by Category -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <h2 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-tags me-2 text-primary"></i>Volume by Category
+        </h2>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="text-end">Issues Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in by_category %}
+                <tr>
+                  <td class="fw-semibold text-dark">{{ c.name }}</td>
+                  <td class="text-end fw-bold text-primary">{{ c.count }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="2" class="text-center py-3 text-muted">No records</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Issues by Priority -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h2 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-flag me-2 text-primary"></i>Distribution by Priority
+        </h2>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Priority Level</th>
+                <th class="text-end">Issues Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in by_priority %}
+                <tr>
+                  <td>
+                    {% if p.name == 'CRITICAL' %}
+                      <span class="badge-priority prio-critical">CRITICAL</span>
+                    {% elif p.name == 'HIGH' %}
+                      <span class="badge-priority prio-high">HIGH</span>
+                    {% elif p.name == 'MEDIUM' %}
+                      <span class="badge-priority prio-medium">MEDIUM</span>
+                    {% else %}
+                      <span class="badge-priority prio-low">LOW</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end fw-bold">{{ p.count }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="2" class="text-center py-3 text-muted">No records</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSV Export Box -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm bg-light p-4 d-flex flex-column justify-content-center">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <i class="bi bi-filetype-csv display-5 text-success"></i>
+        <div>
+          <h2 class="h5 fw-bold mb-1 text-dark">Export Raw Audit Records</h2>
+          <div class="text-muted small">Standard RFC 4180 CSV export with timestamps, notes, and staff IDs</div>
+        </div>
+      </div>
+      <p class="small text-secondary mb-4">
+        Generates a comprehensive snapshot containing Issue ID, category, location, priority, resolution date, resolution notes, and responsible faculty coordinators for accreditation or compliance audits.
+      </p>
+      <a href="{% url 'export_issues_csv' %}" class="btn btn-success fw-semibold align-self-start px-4">
+        <i class="bi bi-download me-2"></i>Download CSV Report
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

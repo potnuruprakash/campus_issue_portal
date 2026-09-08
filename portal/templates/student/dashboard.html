@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard{% endblock %}
+{% block breadcrumb %}Student Portal / Overview{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1">Student Dashboard</h1>
+    <p class="text-muted mb-0">Track and report campus maintenance, facilities, and academic problems.</p>
+  </div>
+  <a href="{% url 'student_report_issue' %}" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm">
+    <i class="bi bi-plus-lg me-2"></i>+ Report New Issue
+  </a>
+</div>
+
+<!-- Metrics Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Total Reported</div>
+        <div class="stat-number">{{ total_issues }}</div>
+      </div>
+      <div class="stat-icon-box bg-primary-subtle text-primary">
+        <i class="bi bi-collection"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Pending Verification</div>
+        <div class="stat-number">{{ pending_issues }}</div>
+      </div>
+      <div class="stat-icon-box bg-warning-subtle text-warning">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">In Progress</div>
+        <div class="stat-number">{{ in_progress_issues }}</div>
+      </div>
+      <div class="stat-icon-box bg-info-subtle text-info">
+        <i class="bi bi-gear-wide-connected"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Resolved Issues</div>
+        <div class="stat-number">{{ resolved_issues }}</div>
+      </div>
+      <div class="stat-icon-box bg-success-subtle text-success">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Issues -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+    <h2 class="card-title h5 mb-0">
+      <i class="bi bi-clock-history me-2 text-primary"></i>Recent Reported Issues
+    </h2>
+    <a href="{% url 'student_my_issues' %}" class="btn btn-sm btn-outline-secondary">
+      View All Issues ({{ total_issues }})
+    </a>
+  </div>
+
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Issue ID</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Location</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if recent_issues %}
+            {% for issue in recent_issues %}
+              <tr>
+                <td class="fw-bold">
+                  <a href="{% url 'student_issue_detail' issue.issue_id %}" class="text-decoration-none text-primary">
+                    {{ issue.issue_id }}
+                  </a>
+                </td>
+                <td>
+                  <div class="fw-semibold text-truncate" style="max-width: 260px;">{{ issue.title }}</div>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border">{{ issue.category }}</span>
+                </td>
+                <td class="text-muted small">
+                  <i class="bi bi-geo-alt me-1"></i>{{ issue.location }}
+                </td>
+                <td>
+                  {% if issue.priority == 'CRITICAL' %}
+                    <span class="badge-priority prio-critical"><i class="bi bi-exclamation-triangle-fill"></i> CRITICAL</span>
+                  {% elif issue.priority == 'HIGH' %}
+                    <span class="badge-priority prio-high"><i class="bi bi-arrow-up-circle"></i> HIGH</span>
+                  {% elif issue.priority == 'MEDIUM' %}
+                    <span class="badge-priority prio-medium"><i class="bi bi-dash-circle"></i> MEDIUM</span>
+                  {% else %}
+                    <span class="badge-priority prio-low"><i class="bi bi-arrow-down-circle"></i> LOW</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if issue.status == 'Submitted' %}
+                    <span class="badge-status status-submitted"><i class="bi bi-send"></i> Submitted</span>
+                  {% elif issue.status == 'Verified' %}
+                    <span class="badge-status status-verified"><i class="bi bi-shield-check"></i> Verified</span>
+                  {% elif issue.status == 'Assigned' %}
+                    <span class="badge-status status-assigned"><i class="bi bi-person-check"></i> Assigned</span>
+                  {% elif issue.status == 'In Progress' %}
+                    <span class="badge-status status-in-progress"><i class="bi bi-gear"></i> In Progress</span>
+                  {% elif issue.status == 'Resolved' %}
+                    <span class="badge-status status-resolved"><i class="bi bi-check-circle-fill"></i> Resolved</span>
+                  {% else %}
+                    <span class="badge-status status-closed"><i class="bi bi-lock"></i> Closed</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted small">
+                  {{ issue.created_at|date:"M d, Y" }}
+                </td>
+                <td class="text-end">
+                  <a href="{% url 'student_issue_detail' issue.issue_id %}" class="btn btn-sm btn-outline-primary">
+                    Track <i class="bi bi-arrow-right ms-1"></i>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-5">
+                <div class="text-muted mb-3">
+                  <i class="bi bi-inbox fs-1"></i>
+                </div>
+                <h3 class="h6 fw-semibold text-secondary">No issues reported yet</h3>
+                <p class="small text-muted mb-3">Notice something broken or malfunctioning on campus?</p>
+                <a href="{% url 'student_report_issue' %}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-plus-lg me-1"></i>Report Your First Issue
+                </a>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

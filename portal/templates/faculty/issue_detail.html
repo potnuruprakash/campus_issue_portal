@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage {{ issue.issue_id }} - Faculty Review{% endblock %}
+{% block breadcrumb %}Faculty Workspace / <a href="{% url 'faculty_issues_list' %}" class="text-decoration-none text-secondary">Issues</a> / {{ issue.issue_id }}{% endblock %}
+
+{% block content %}
+<!-- Issue Header -->
+<div class="mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge bg-dark text-white px-2 py-1 fs-6 font-monospace">{{ issue.issue_id }}</span>
+      {% if issue.priority == 'CRITICAL' %}
+        <span class="badge-priority prio-critical"><i class="bi bi-exclamation-triangle-fill"></i> CRITICAL PRIORITY</span>
+      {% elif issue.priority == 'HIGH' %}
+        <span class="badge-priority prio-high"><i class="bi bi-arrow-up-circle"></i> HIGH PRIORITY</span>
+      {% elif issue.priority == 'MEDIUM' %}
+        <span class="badge-priority prio-medium"><i class="bi bi-dash-circle"></i> MEDIUM PRIORITY</span>
+      {% else %}
+        <span class="badge-priority prio-low"><i class="bi bi-arrow-down-circle"></i> LOW PRIORITY</span>
+      {% endif %}
+    </div>
+    <h1 class="h3 fw-bold mb-0">{{ issue.title }}</h1>
+  </div>
+
+  <div class="d-flex align-items-center gap-2">
+    {% if issue.status == 'Submitted' %}
+      <span class="badge-status status-submitted fs-6 px-3 py-2"><i class="bi bi-send"></i> Submitted</span>
+      <button type="button" class="btn btn-sm btn-outline-purple border-purple fw-semibold" style="color: #6f42c1; border-color: #6f42c1;" data-bs-toggle="modal" data-bs-target="#verifyModal">
+        <i class="bi bi-shield-check me-1"></i> Verify Issue
+      </button>
+    {% elif issue.status == 'Verified' %}
+      <span class="badge-status status-verified fs-6 px-3 py-2"><i class="bi bi-shield-check"></i> Verified</span>
+    {% elif issue.status == 'Assigned' %}
+      <span class="badge-status status-assigned fs-6 px-3 py-2"><i class="bi bi-person-check"></i> Assigned</span>
+    {% elif issue.status == 'In Progress' %}
+      <span class="badge-status status-in-progress fs-6 px-3 py-2"><i class="bi bi-gear"></i> In Progress</span>
+    {% elif issue.status == 'Resolved' %}
+      <span class="badge-status status-resolved fs-6 px-3 py-2"><i class="bi bi-check-circle-fill"></i> Resolved</span>
+    {% else %}
+      <span class="badge-status status-closed fs-6 px-3 py-2"><i class="bi bi-lock"></i> Closed</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Main Content: Description, Workflow Action Box, Comments -->
+  <div class="col-lg-8">
+    <!-- Action Center for Faculty -->
+    <div class="card border-0 shadow-sm mb-4 border-top border-4 border-primary">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h2 class="card-title h6 mb-0 fw-bold text-primary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-sliders me-2"></i>Faculty Action & Resolution Controls
+        </h2>
+        <span class="badge bg-light text-dark border">Current Status: {{ issue.status }}</span>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{% url 'faculty_update_status' issue.issue_id %}">
+          {% csrf_token %}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="status" class="form-label small fw-bold text-secondary">Update Status To</label>
+              <select class="form-select" id="status" name="status" required>
+                <option value="In Progress" {% if issue.status == 'In Progress' %}selected{% endif %}>In Progress - Repairs underway</option>
+                <option value="Resolved" {% if issue.status == 'Resolved' %}selected{% endif %}>Resolved - Work completed</option>
+                <option value="Verified" {% if issue.status == 'Verified' %}selected{% endif %}>Verified - Confirmed valid problem</option>
+              </select>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                <i class="bi bi-check2-circle me-1"></i> Update Issue Status
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-0">
+            <label for="resolution_notes" class="form-label small fw-bold text-secondary">
+              Resolution Notes / Action Taken
+            </label>
+            <textarea class="form-control" id="resolution_notes" name="resolution_notes" rows="3" placeholder="Describe actions taken, work order numbers, parts replaced, or instructions for the student...">{{ issue.resolution_notes }}</textarea>
+            <div class="form-text small">These notes are visible to the student and recorded permanently in the audit trail.</div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Issue Description & Evidence -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h2 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-card-text me-2 text-primary"></i>Problem Description
+        </h2>
+      </div>
+      <div class="card-body p-4">
+        <p class="text-dark mb-4" style="white-space: pre-line; line-height: 1.6;">{{ issue.description }}</p>
+
+        {% if issue.attachment_path %}
+          <div class="border rounded-3 p-3 bg-light d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <i class="bi bi-paperclip fs-3 text-primary"></i>
+              <div>
+                <div class="fw-semibold small text-dark">{{ issue.attachment_name|default:"Evidence File" }}</div>
+                <div class="text-muted small">Uploaded by Student</div>
+              </div>
+            </div>
+            <a href="{{ issue.attachment_path }}" target="_blank" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-box-arrow-up-right me-1"></i> Inspect File
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Student Feedback (if any) -->
+    {% if feedback %}
+      <div class="card border-0 shadow-sm mb-4 bg-light border-start border-4 border-warning">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-star-fill text-warning fs-5"></i>
+            <h3 class="h6 fw-bold mb-0 text-dark">Student Feedback & Rating</h3>
+            <span class="badge bg-warning text-dark ms-auto">{{ feedback.rating }} / 5 Stars</span>
+          </div>
+          {% if feedback.comment %}
+            <p class="mb-1 text-secondary small">"{{ feedback.comment }}"</p>
+          {% endif %}
+          <div class="text-muted small" style="font-size: 0.75rem;">Submitted on {{ feedback.created_at|date:"M d, Y" }}</div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Discussion Thread -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h2 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-chat-dots me-2 text-primary"></i>Communications & Comments ({{ comments|length }})
+        </h2>
+      </div>
+      <div class="card-body p-4">
+        {% if comments %}
+          <div class="space-y-3 mb-4">
+            {% for c in comments %}
+              <div class="p-3 rounded-3 mb-3 border {% if c.user_role == 'FACULTY' %}bg-light border-primary-subtle{% else %}bg-white{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold small text-dark">{{ c.user_name }}</span>
+                    <span class="badge {% if c.user_role == 'ADMIN' %}bg-danger{% elif c.user_role == 'FACULTY' %}bg-primary{% else %}bg-secondary{% endif %}" style="font-size: 0.65rem;">
+                      {{ c.user_role }}
+                    </span>
+                  </div>
+                  <span class="text-muted small" style="font-size: 0.75rem;">{{ c.created_at|date:"M d, H:i" }}</span>
+                </div>
+                <div class="small text-secondary">{{ c.message }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted small text-center py-3 mb-4">No comments recorded.</p>
+        {% endif %}
+
+        <form method="POST" action="{% url 'faculty_add_comment' issue.issue_id %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label for="f_comment" class="form-label small fw-bold text-secondary">Post Update / Response to Student</label>
+            <textarea class="form-control" id="f_comment" name="message" rows="3" placeholder="Provide an update, instructions, or ask for clarifications..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary px-3 fw-semibold">
+            <i class="bi bi-send me-1"></i> Post Comment
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Student Details, Issue Metadata & Audit Log -->
+  <div class="col-lg-4">
+    <!-- Student Information -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h3 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-person-circle me-2 text-primary"></i>Reporting Student
+        </h3>
+      </div>
+      <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            {{ issue.student_name|slice:":1"|upper }}
+          </div>
+          <div>
+            <div class="fw-bold text-dark">{{ issue.student_name }}</div>
+            <div class="text-muted small">{{ issue.student_email }}</div>
+          </div>
+        </div>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Department:</span>
+            <span class="fw-semibold text-dark">{{ issue.department }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Exact Location:</span>
+            <span class="fw-semibold text-dark text-end">{{ issue.location }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Reported Date:</span>
+            <span class="fw-semibold text-dark">{{ issue.created_at|date:"M d, Y - H:i" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Assigned To:</span>
+            <span class="fw-semibold text-dark">{{ issue.assigned_faculty_name|default:"Unassigned" }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Audit Trail -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h3 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-clock-history me-2 text-primary"></i>Audit Trail
+        </h3>
+      </div>
+      <div class="card-body p-3">
+        <ul class="audit-list">
+          {% for log in audit_logs %}
+            <li class="audit-item">
+              <div class="audit-dot">
+                <i class="bi bi-check2"></i>
+              </div>
+              <div class="audit-content">
+                <div class="fw-bold small text-dark">{{ log.action }}</div>
+                <div class="text-muted small" style="font-size: 0.75rem;">
+                  By {{ log.performed_by_name }} ({{ log.performed_by_role }}) &bull; {{ log.timestamp|date:"M d, H:i" }}
+                </div>
+                {% if log.details %}
+                  <div class="text-secondary small mt-1" style="font-size: 0.775rem;">{{ log.details }}</div>
+                {% endif %}
+              </div>
+            </li>
+          {% empty %}
+            <li class="text-muted small">No audit logs recorded.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Verify Modal -->
+<div class="modal fade" id="verifyModal" tabindex="-1" aria-labelledby="verifyModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'faculty_verify_issue' issue.issue_id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="verifyModalLabel">
+            <i class="bi bi-shield-check text-purple me-1"></i> Verify Issue: {{ issue.issue_id }}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted mb-3">
+            Verifying this issue confirms that the reported defect is genuine and queued for assignment and remediation.
+          </p>
+          <div class="mb-3">
+            <label for="verify_notes" class="form-label small fw-bold text-secondary">Verification Notes (Optional)</label>
+            <textarea class="form-control" id="verify_notes" name="notes" rows="3" placeholder="e.g. Inspected classroom on Sept 8; projector power supply failure confirmed."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary">Confirm Verification</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

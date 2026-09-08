@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Issue Categories - Administrator{% endblock %}
+{% block breadcrumb %}Administration / Category Configuration{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1">Database-Driven Issue Categories</h1>
+    <p class="text-muted mb-0">Configure operational problem categories dynamically available to students during reporting.</p>
+  </div>
+  <button type="button" class="btn btn-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+    <i class="bi bi-plus-lg me-1"></i>Add Category
+  </button>
+</div>
+
+<!-- Category Grid -->
+<div class="row g-3">
+  {% for c in categories %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body p-4 d-flex flex-column">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <div class="stat-icon-box bg-light text-primary border" style="width: 40px; height: 40px; font-size: 1.1rem;">
+                <i class="bi {{ c.icon|default:'bi-tag' }}"></i>
+              </div>
+              <div>
+                <h2 class="h6 fw-bold mb-0 text-dark">{{ c.name }}</h2>
+                <div class="text-muted small" style="font-size: 0.75rem;">
+                  <a href="{% url 'admin_issues_list' %}?category={{ c.name }}" class="text-decoration-none">
+                    {{ c.issues_count }} Issues Filed
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              {% if c.is_active %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Inactive</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <p class="small text-muted mb-4 flex-grow-1">
+            {{ c.description|default:"Standard university campus infrastructure category." }}
+          </p>
+
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+            <span class="text-muted small font-monospace" style="font-size: 0.75rem;">{{ c.icon|default:'bi-tag' }}</span>
+            <form method="POST" action="{% url 'admin_toggle_category' c.id %}">
+              {% csrf_token %}
+              {% if c.is_active %}
+                <button type="submit" class="btn btn-sm btn-outline-warning">
+                  <i class="bi bi-pause-circle me-1"></i>Deactivate
+                </button>
+              {% else %}
+                <button type="submit" class="btn btn-sm btn-outline-success">
+                  <i class="bi bi-play-circle me-1"></i>Activate
+                </button>
+              {% endif %}
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12 text-center py-5 text-muted">
+      No categories configured. Use the button above to add categories or run seed data.
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCatModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'admin_categories_list' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="addCatModalLabel">
+            <i class="bi bi-tags-fill text-primary me-2"></i>Create Issue Category
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="cat_name" class="form-label small fw-bold text-secondary">Category Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="cat_name" name="name" placeholder="e.g. Laboratory Equipment" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="cat_desc" class="form-label small fw-bold text-secondary">Description</label>
+            <textarea class="form-control" id="cat_desc" name="description" rows="3" placeholder="Explain what issues students should categorize under this..."></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="cat_icon" class="form-label small fw-bold text-secondary">Bootstrap Icon Class</label>
+            <input type="text" class="form-control" id="cat_icon" name="icon" value="bi-tag" placeholder="e.g. bi-wifi, bi-droplet, bi-lightning">
+            <div class="form-text small">Use any valid Bootstrap icon class (e.g. bi-cpu, bi-wifi, bi-bus-front).</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary">Save Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Faculty Roster - Administrator{% endblock %}
+{% block breadcrumb %}Administration / Faculty Roster{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1">Faculty & Department Coordinators</h1>
+    <p class="text-muted mb-0">Manage authorized faculty accounts, department assignments, and resolution workloads.</p>
+  </div>
+  <button type="button" class="btn btn-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#addFacultyModal">
+    <i class="bi bi-person-plus me-1"></i>Add New Faculty Member
+  </button>
+</div>
+
+<!-- Faculty Roster Table -->
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Faculty Member</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Active Workload</th>
+            <th>Resolved Issues</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if faculty_list %}
+            {% for f in faculty_list %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                      {{ f.name|slice:":1"|upper }}
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">{{ f.name }}</div>
+                      <div class="text-muted small" style="font-size: 0.75rem;">Faculty Member</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="small">{{ f.email }}</td>
+                <td>
+                  <span class="badge bg-light text-dark border">{{ f.department }}</span>
+                </td>
+                <td>
+                  <a href="{% url 'admin_issues_list' %}?search={{ f.name }}" class="text-decoration-none">
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                      {{ f.active_issues_count }} In Progress
+                    </span>
+                  </a>
+                </td>
+                <td>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    {{ f.resolved_issues_count }} Resolved
+                  </span>
+                </td>
+                <td>
+                  {% if f.is_active %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                  {% else %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Inactive</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <form method="POST" action="{% url 'admin_toggle_user_status' f.id %}" class="d-inline" onsubmit="return confirm('Change active status for {{ f.name }}?');">
+                    {% csrf_token %}
+                    {% if f.is_active %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate Account">
+                        Deactivate
+                      </button>
+                    {% else %}
+                      <button type="submit" class="btn btn-sm btn-outline-success" title="Activate Account">
+                        Activate
+                      </button>
+                    {% endif %}
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                No faculty members registered in the portal yet.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Faculty Modal -->
+<div class="modal fade" id="addFacultyModal" tabindex="-1" aria-labelledby="addFacultyModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'admin_faculty_list' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="addFacultyModalLabel">
+            <i class="bi bi-person-plus text-primary me-2"></i>Provision New Faculty Account
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="f_name" class="form-label small fw-bold text-secondary">Full Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="f_name" name="name" placeholder="e.g. Dr. Robert Chen" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="f_email" class="form-label small fw-bold text-secondary">Institutional Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="f_email" name="email" placeholder="faculty@campus.edu" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="f_dept" class="form-label small fw-bold text-secondary">Department Assignment <span class="text-danger">*</span></label>
+            <select class="form-select" id="f_dept" name="department" required>
+              <option value="" disabled selected>Choose department...</option>
+              {% for d in departments %}
+                <option value="{{ d }}">{{ d }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="f_pass" class="form-label small fw-bold text-secondary">Initial Password <span class="text-danger">*</span></label>
+            <input type="password" class="form-control" id="f_pass" name="password" minlength="6" placeholder="Min 6 characters" required>
+            <div class="form-text small">The faculty member can update this in their profile settings.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary">Create Faculty Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - Campus Issue Portal{% endblock %}
+{% block breadcrumb %}Account / Profile Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 850px;">
+  <div class="mb-4">
+    <h1 class="h3 fw-bold mb-1">User Profile & Credentials</h1>
+    <p class="text-muted mb-0">View your verified account details and update personal information.</p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Profile Card -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm text-center p-4">
+        <div class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px; font-size: 2rem;">
+          {{ current_user.name|slice:":1"|upper }}
+        </div>
+        <h2 class="h5 fw-bold mb-1">{{ current_user.name }}</h2>
+        <div class="text-muted small mb-2">{{ current_user.email }}</div>
+
+        <div>
+          {% if current_user.role == 'ADMIN' %}
+            <span class="badge bg-danger px-3 py-1">Administrator</span>
+          {% elif current_user.role == 'FACULTY' %}
+            <span class="badge bg-primary px-3 py-1">Faculty Member</span>
+          {% else %}
+            <span class="badge bg-success px-3 py-1">Student</span>
+          {% endif %}
+        </div>
+
+        <hr class="my-3">
+
+        <div class="text-start small space-y-2">
+          {% if current_user.student_id %}
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Student ID:</span>
+              <span class="fw-semibold text-dark font-monospace">{{ current_user.student_id }}</span>
+            </div>
+          {% endif %}
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Department:</span>
+            <span class="fw-semibold text-dark text-end">{{ current_user.department }}</span>
+          </div>
+          {% if current_user.year %}
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Year:</span>
+              <span class="fw-semibold text-dark">{{ current_user.year }}</span>
+            </div>
+          {% endif %}
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Status:</span>
+            <span class="badge bg-success-subtle text-success">Verified Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Edit Profile Form -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+          <h3 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+            <i class="bi bi-pencil-square me-2 text-primary"></i>Update Profile Details
+          </h3>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" action="{% url 'profile' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="prof_name" class="form-label small fw-bold text-secondary">Full Name</label>
+              <input type="text" class="form-control" id="prof_name" name="name" value="{{ current_user.name }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-secondary">Email Address</label>
+              <input type="email" class="form-control bg-light" value="{{ current_user.email }}" readonly disabled>
+              <div class="form-text small">Institutional email is managed by University IT and cannot be modified.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="prof_dept" class="form-label small fw-bold text-secondary">Department</label>
+              <select class="form-select" id="prof_dept" name="department" {% if current_user.role == 'ADMIN' %}disabled{% endif %}>
+                {% for d in departments %}
+                  <option value="{{ d }}" {% if current_user.department == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            {% if current_user.role == 'STUDENT' %}
+              <div class="mb-3">
+                <label for="prof_year" class="form-label small fw-bold text-secondary">Year of Study</label>
+                <select class="form-select" id="prof_year" name="year">
+                  <option value="1st Year" {% if current_user.year == '1st Year' %}selected{% endif %}>1st Year</option>
+                  <option value="2nd Year" {% if current_user.year == '2nd Year' %}selected{% endif %}>2nd Year</option>
+                  <option value="3rd Year" {% if current_user.year == '3rd Year' %}selected{% endif %}>3rd Year</option>
+                  <option value="4th Year" {% if current_user.year == '4th Year' %}selected{% endif %}>4th Year</option>
+                  <option value="Postgraduate" {% if current_user.year == 'Postgraduate' %}selected{% endif %}>Postgraduate</option>
+                </select>
+              </div>
+            {% endif %}
+
+            <hr class="my-4">
+
+            <h4 class="h6 fw-bold text-dark mb-3">Change Password</h4>
+            <div class="mb-4">
+              <label for="new_password" class="form-label small fw-bold text-secondary">New Password</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="new_password" name="new_password" minlength="6" placeholder="Leave blank to keep existing password">
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="new_password">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              <div class="form-text small">Minimum 6 characters.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+              Save Profile Changes
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

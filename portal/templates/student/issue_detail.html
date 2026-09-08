@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ issue.issue_id }} - Issue Details{% endblock %}
+{% block breadcrumb %}Student Portal / <a href="{% url 'student_my_issues' %}" class="text-decoration-none text-secondary">My Issues</a> / {{ issue.issue_id }}{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge bg-dark text-white px-2 py-1 fs-6 font-monospace">{{ issue.issue_id }}</span>
+      {% if issue.priority == 'CRITICAL' %}
+        <span class="badge-priority prio-critical"><i class="bi bi-exclamation-triangle-fill"></i> CRITICAL PRIORITY</span>
+      {% elif issue.priority == 'HIGH' %}
+        <span class="badge-priority prio-high"><i class="bi bi-arrow-up-circle"></i> HIGH PRIORITY</span>
+      {% elif issue.priority == 'MEDIUM' %}
+        <span class="badge-priority prio-medium"><i class="bi bi-dash-circle"></i> MEDIUM PRIORITY</span>
+      {% else %}
+        <span class="badge-priority prio-low"><i class="bi bi-arrow-down-circle"></i> LOW PRIORITY</span>
+      {% endif %}
+    </div>
+    <h1 class="h3 fw-bold mb-0">{{ issue.title }}</h1>
+  </div>
+
+  <div>
+    {% if issue.status == 'Submitted' %}
+      <span class="badge-status status-submitted fs-6 px-3 py-2"><i class="bi bi-send"></i> Submitted</span>
+    {% elif issue.status == 'Verified' %}
+      <span class="badge-status status-verified fs-6 px-3 py-2"><i class="bi bi-shield-check"></i> Verified</span>
+    {% elif issue.status == 'Assigned' %}
+      <span class="badge-status status-assigned fs-6 px-3 py-2"><i class="bi bi-person-check"></i> Assigned</span>
+    {% elif issue.status == 'In Progress' %}
+      <span class="badge-status status-in-progress fs-6 px-3 py-2"><i class="bi bi-gear"></i> In Progress</span>
+    {% elif issue.status == 'Resolved' %}
+      <span class="badge-status status-resolved fs-6 px-3 py-2"><i class="bi bi-check-circle-fill"></i> Resolved</span>
+    {% else %}
+      <span class="badge-status status-closed fs-6 px-3 py-2"><i class="bi bi-lock"></i> Closed</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Visual Lifecycle Progress Bar -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body py-4">
+    <div class="lifecycle-timeline">
+      <div class="timeline-track"></div>
+      {% for step in timeline %}
+        <div class="timeline-step {% if step.is_done %}done{% elif step.is_current %}current{% endif %}">
+          <div class="step-circle">
+            {% if step.is_done %}
+              <i class="bi bi-check-lg"></i>
+            {% else %}
+              <i class="bi {{ step.icon }}"></i>
+            {% endif %}
+          </div>
+          <div class="step-label">{{ step.label }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Details, Attachments, Resolution Notes, Feedback -->
+  <div class="col-lg-8">
+    <!-- Issue Description Card -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h2 class="card-title h6 mb-0 text-secondary fw-bold text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-card-text me-2 text-primary"></i>Description & Evidence
+        </h2>
+      </div>
+      <div class="card-body p-4">
+        <p class="text-dark mb-4" style="white-space: pre-line; line-height: 1.6;">{{ issue.description }}</p>
+
+        {% if issue.attachment_path %}
+          <div class="border rounded-3 p-3 bg-light d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <i class="bi bi-paperclip fs-3 text-primary"></i>
+              <div>
+                <div class="fw-semibold small text-dark">{{ issue.attachment_name|default:"Attached Evidence" }}</div>
+                <div class="text-muted small">Supporting Document / Photograph</div>
+              </div>
+            </div>
+            <a href="{{ issue.attachment_path }}" target="_blank" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-box-arrow-up-right me-1"></i> View Attachment
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Resolution Notes Card (if resolved/closed) -->
+    {% if issue.status in 'Resolved Closed' or issue.resolution_notes %}
+      <div class="card border-0 shadow-sm mb-4 border-start border-4 border-success">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <h3 class="h6 fw-bold mb-0 text-success">Official Resolution Notes</h3>
+          </div>
+          <p class="text-dark mb-1" style="white-space: pre-line;">
+            {{ issue.resolution_notes|default:"This issue has been addressed and marked resolved by university facilities staff." }}
+          </p>
+          {% if issue.resolved_at %}
+            <div class="text-muted small mt-2">
+              <i class="bi bi-clock me-1"></i> Resolved on {{ issue.resolved_at|date:"F d, Y - H:i" }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Student Resolution Feedback Card -->
+    {% if issue.status in 'Resolved Closed' %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+          <h2 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+            <i class="bi bi-star-fill text-warning me-2"></i>Resolution Feedback
+          </h2>
+        </div>
+        <div class="card-body p-4">
+          {% if existing_feedback %}
+            <div class="bg-light p-3 rounded-3 border">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="text-warning fs-5">
+                  {% for i in "12345" %}
+                    {% if forloop.counter <= existing_feedback.rating %}
+                      <i class="bi bi-star-fill"></i>
+                    {% else %}
+                      <i class="bi bi-star"></i>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                <span class="fw-bold text-dark">{{ existing_feedback.rating }} out of 5 Stars</span>
+                <span class="badge bg-success-subtle text-success ms-auto">Submitted</span>
+              </div>
+              {% if existing_feedback.comment %}
+                <p class="mb-0 text-secondary small">"{{ existing_feedback.comment }}"</p>
+              {% endif %}
+              <div class="text-muted small mt-2" style="font-size: 0.75rem;">
+                Provided on {{ existing_feedback.created_at|date:"M d, Y" }}
+              </div>
+            </div>
+          {% else %}
+            <form method="POST" action="{% url 'student_submit_feedback' issue.issue_id %}">
+              {% csrf_token %}
+              <p class="small text-muted mb-3">How satisfied are you with the resolution of this issue?</p>
+
+              <div class="mb-3">
+                <div class="star-rating">
+                  <input type="radio" id="star5" name="rating" value="5" required checked>
+                  <label for="star5" title="5 Stars - Highly Satisfied"><i class="bi bi-star-fill"></i></label>
+                  <input type="radio" id="star4" name="rating" value="4">
+                  <label for="star4" title="4 Stars - Satisfied"><i class="bi bi-star-fill"></i></label>
+                  <input type="radio" id="star3" name="rating" value="3">
+                  <label for="star3" title="3 Stars - Neutral"><i class="bi bi-star-fill"></i></label>
+                  <input type="radio" id="star2" name="rating" value="2">
+                  <label for="star2" title="2 Stars - Unsatisfied"><i class="bi bi-star-fill"></i></label>
+                  <input type="radio" id="star1" name="rating" value="1">
+                  <label for="star1" title="1 Star - Very Unsatisfied"><i class="bi bi-star-fill"></i></label>
+                </div>
+                <div id="ratingLabelText" class="small fw-semibold text-primary mt-1">5 Stars - Highly Satisfied</div>
+              </div>
+
+              <div class="mb-3">
+                <label for="feedback_comment" class="form-label small fw-bold text-secondary">Additional Feedback / Comments</label>
+                <textarea class="form-control" id="feedback_comment" name="comment" rows="3" placeholder="Share your experience or note any residual concerns..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-sm btn-primary px-4 fw-semibold">
+                Submit Feedback
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Comments Thread -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h2 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-chat-dots me-2 text-primary"></i>Discussion & Inquiries ({{ comments|length }})
+        </h2>
+      </div>
+      <div class="card-body p-4">
+        {% if comments %}
+          <div class="space-y-3 mb-4">
+            {% for c in comments %}
+              <div class="p-3 rounded-3 mb-3 border {% if c.user_role == 'STUDENT' %}bg-white{% else %}bg-light border-primary-subtle{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold small text-dark">{{ c.user_name }}</span>
+                    <span class="badge {% if c.user_role == 'ADMIN' %}bg-danger{% elif c.user_role == 'FACULTY' %}bg-primary{% else %}bg-secondary{% endif %}" style="font-size: 0.65rem;">
+                      {{ c.user_role }}
+                    </span>
+                  </div>
+                  <span class="text-muted small" style="font-size: 0.75rem;">{{ c.created_at|date:"M d, H:i" }}</span>
+                </div>
+                <div class="small text-secondary">{{ c.message }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted small text-center py-3 mb-4">No comments or questions posted yet.</p>
+        {% endif %}
+
+        <form method="POST" action="{% url 'student_add_comment' issue.issue_id %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label for="comment_message" class="form-label small fw-bold text-secondary">Add Comment / Follow-up Inquiry</label>
+            <textarea class="form-control" id="comment_message" name="message" rows="3" placeholder="Type your inquiry or update for maintenance staff..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary px-3 fw-semibold">
+            <i class="bi bi-send me-1"></i> Post Comment
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Metadata & Audit Trail -->
+  <div class="col-lg-4">
+    <!-- Meta Info Card -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h3 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-info-circle me-2 text-primary"></i>Issue Information
+        </h3>
+      </div>
+      <div class="card-body p-3">
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Category:</span>
+            <span class="fw-semibold text-dark">{{ issue.category }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Location:</span>
+            <span class="fw-semibold text-dark text-end">{{ issue.location }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Department:</span>
+            <span class="fw-semibold text-dark">{{ issue.department }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Assigned Faculty:</span>
+            <span class="fw-semibold text-dark">
+              {% if issue.assigned_faculty_name %}
+                <i class="bi bi-person-check text-primary me-1"></i>{{ issue.assigned_faculty_name }}
+              {% else %}
+                <span class="text-muted fst-italic">Pending Assignment</span>
+              {% endif %}
+            </span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Submitted Date:</span>
+            <span class="fw-semibold text-dark">{{ issue.created_at|date:"M d, Y - H:i" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted">Last Updated:</span>
+            <span class="fw-semibold text-dark">{{ issue.updated_at|date:"M d, Y - H:i" }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Audit History Trail -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h3 class="card-title h6 mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-clock-history me-2 text-primary"></i>Audit Trail & History
+        </h3>
+      </div>
+      <div class="card-body p-3">
+        <ul class="audit-list">
+          {% for log in audit_logs %}
+            <li class="audit-item">
+              <div class="audit-dot">
+                <i class="bi bi-check2"></i>
+              </div>
+              <div class="audit-content">
+                <div class="fw-bold small text-dark">{{ log.action }}</div>
+                <div class="text-muted small" style="font-size: 0.75rem;">
+                  By {{ log.performed_by_name }} ({{ log.performed_by_role }}) &bull; {{ log.timestamp|date:"M d, H:i" }}
+                </div>
+                {% if log.details %}
+                  <div class="text-secondary small mt-1" style="font-size: 0.775rem;">{{ log.details }}</div>
+                {% endif %}
+              </div>
+            </li>
+          {% empty %}
+            <li class="text-muted small">No audit records recorded.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

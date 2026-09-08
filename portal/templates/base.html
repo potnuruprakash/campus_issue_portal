@@ -1,0 +1,235 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MVGR Campus Issue Portal{% endblock %} | MVGR College of Engineering</title>
+  
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Design System -->
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+  
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="app-wrapper">
+  {% if current_user %}
+  <!-- Sidebar Navigation -->
+  <aside class="app-sidebar" id="appSidebar">
+    <div class="d-flex align-items-center justify-content-between">
+      <a href="{% if current_user.role == 'ADMIN' %}{% url 'admin_dashboard' %}{% elif current_user.role == 'FACULTY' %}{% url 'faculty_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}" class="sidebar-brand">
+        <i class="bi bi-mortarboard-fill me-2 text-warning"></i>
+        <span>MVGR Portal</span>
+      </a>
+      <button type="button" class="btn btn-link text-white-50 d-lg-none me-2 p-1" id="sidebarCloseBtn" aria-label="Close sidebar">
+        <i class="bi bi-x-lg fs-5"></i>
+      </button>
+    </div>
+
+    <ul class="sidebar-nav">
+      {% if current_user.role == 'STUDENT' %}
+        <li class="nav-label">Student Menu</li>
+        <li>
+          <a href="{% url 'student_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'student_report_issue' %}" class="nav-link {% if request.resolver_match.url_name == 'student_report_issue' %}active{% endif %}">
+            <i class="bi bi-plus-circle-fill text-primary"></i> <span>Report New Issue</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'student_my_issues' %}" class="nav-link {% if request.resolver_match.url_name in 'student_my_issues student_issue_detail' %}active{% endif %}">
+            <i class="bi bi-list-check"></i> <span>My Reported Issues</span>
+          </a>
+        </li>
+      {% elif current_user.role == 'FACULTY' %}
+        <li class="nav-label">Faculty Management</li>
+        <li>
+          <a href="{% url 'faculty_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'faculty_dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'faculty_issues_list' %}?mode=assigned" class="nav-link {% if request.resolver_match.url_name == 'faculty_issues_list' and not request.GET.mode or request.GET.mode == 'assigned' %}active{% endif %}">
+            <i class="bi bi-person-workspace"></i> <span>Assigned Issues</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'faculty_issues_list' %}?mode=department" class="nav-link {% if request.GET.mode == 'department' %}active{% endif %}">
+            <i class="bi bi-building"></i> <span>Department Issues</span>
+          </a>
+        </li>
+      {% elif current_user.role == 'ADMIN' %}
+        <li class="nav-label">System Administration</li>
+        <li>
+          <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+            <i class="bi bi-grid-1x2-fill"></i> <span>Control Center</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'admin_issues_list' %}" class="nav-link {% if request.resolver_match.url_name in 'admin_issues_list admin_issue_detail' %}active{% endif %}">
+            <i class="bi bi-ticket-detailed"></i> <span>All Campus Issues</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'admin_users_list' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_users_list' %}active{% endif %}">
+            <i class="bi bi-people"></i> <span>User Accounts</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'admin_faculty_list' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_faculty_list' %}active{% endif %}">
+            <i class="bi bi-person-badge"></i> <span>Faculty Roster</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'admin_categories_list' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_categories_list' %}active{% endif %}">
+            <i class="bi bi-tags"></i> <span>Issue Categories</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'admin_reports' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">
+            <i class="bi bi-file-earmark-bar-graph"></i> <span>Reports & CSV</span>
+          </a>
+        </li>
+      {% endif %}
+
+      <li class="nav-label">Account</li>
+      <li>
+        <a href="{% url 'notifications_list' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications_list' %}active{% endif %}">
+          <i class="bi bi-bell"></i> <span>Notifications</span>
+          {% if unread_count > 0 %}
+            <span class="badge bg-danger ms-auto">{{ unread_count }}</span>
+          {% endif %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+          <i class="bi bi-person-circle"></i> <span>My Profile</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'logout' %}" class="nav-link text-danger">
+          <i class="bi bi-box-arrow-right"></i> <span>Log Out</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="d-flex align-items-center gap-2">
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-weight: 600;">
+          {{ current_user.name|slice:":1"|upper }}
+        </div>
+        <div class="overflow-hidden">
+          <div class="text-white small text-truncate fw-semibold">{{ current_user.name }}</div>
+          <span class="badge {% if current_user.role == 'ADMIN' %}bg-danger{% elif current_user.role == 'FACULTY' %}bg-primary{% else %}bg-success{% endif %} py-0 px-1 text-uppercase" style="font-size: 0.65rem;">
+            {{ current_user.role }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </aside>
+  {% endif %}
+
+  <!-- Main Content Area -->
+  <main class="app-main">
+    {% if current_user %}
+    <!-- Topbar -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle" type="button" aria-label="Toggle navigation">
+          <i class="bi bi-list"></i>
+        </button>
+        <span class="fw-semibold text-secondary d-none d-sm-inline">
+          {% block breadcrumb %}Campus Management Portal{% endblock %}
+        </span>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Notification Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-light position-relative border" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="notifDropdown">
+            <i class="bi bi-bell"></i>
+            {% if unread_count > 0 %}
+              <span class="notif-badge">{{ unread_count }}</span>
+            {% endif %}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="width: 320px; max-width: calc(100vw - 24px); max-height: 380px; overflow-y: auto;" aria-labelledby="notifDropdown">
+            <li class="dropdown-header d-flex justify-content-between align-items-center">
+              <span class="fw-bold">Notifications</span>
+              {% if unread_count > 0 %}
+                <a href="{% url 'mark_all_notifications_read' %}" class="small text-decoration-none">Mark all read</a>
+              {% endif %}
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            {% if recent_notifications %}
+              {% for n in recent_notifications %}
+                <li>
+                  <a class="dropdown-item py-2 {% if not n.is_read %}bg-light fw-semibold{% endif %}" href="{% url 'mark_notification_read' n.id %}">
+                    <div class="small text-truncate text-dark">{{ n.title }}</div>
+                    <div class="text-muted small text-truncate" style="font-size: 0.75rem;">{{ n.message }}</div>
+                  </a>
+                </li>
+              {% endfor %}
+            {% else %}
+              <li class="text-center text-muted py-3 small">No notifications</li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li class="text-center">
+              <a href="{% url 'notifications_list' %}" class="dropdown-item small text-primary fw-semibold">View All Notifications</a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- User Profile Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-light dropdown-toggle border d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i>
+            <span class="d-none d-md-inline small fw-semibold">{{ current_user.name }}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li><h6 class="dropdown-header">{{ current_user.email }}</h6></li>
+            <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Log Out</a></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+    {% endif %}
+
+    <!-- Alert Messages -->
+    <div class="container-fluid px-4 pt-3">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center shadow-sm" role="alert">
+            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Page Body -->
+    <div class="app-content">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/portal.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

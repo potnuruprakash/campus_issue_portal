@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Management - Administrator{% endblock %}
+{% block breadcrumb %}Administration / User Accounts{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1">User Account Management</h1>
+    <p class="text-muted mb-0">Monitor campus user accounts, verify roles, and toggle authorization status.</p>
+  </div>
+  <a href="{% url 'admin_faculty_list' %}" class="btn btn-primary fw-semibold">
+    <i class="bi bi-person-plus me-1"></i>Provision Faculty Account
+  </a>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{% url 'admin_users_list' %}" class="row g-2 align-items-center">
+      <div class="col-md-7">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control border-start-0" name="search" value="{{ search }}" placeholder="Search by name, email, roll number, or department...">
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <select class="form-select" name="role">
+          <option value="">All Roles</option>
+          <option value="STUDENT" {% if selected_role == 'STUDENT' %}selected{% endif %}>Students</option>
+          <option value="FACULTY" {% if selected_role == 'FACULTY' %}selected{% endif %}>Faculty Members</option>
+          <option value="ADMIN" {% if selected_role == 'ADMIN' %}selected{% endif %}>Administrators</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex gap-1">
+        <button type="submit" class="btn btn-secondary w-100">Filter</button>
+        {% if search or selected_role %}
+          <a href="{% url 'admin_users_list' %}" class="btn btn-outline-danger" title="Clear">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Users Table -->
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Department / ID</th>
+            <th>Status</th>
+            <th>Joined Date</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if users %}
+            {% for u in users %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle {% if u.role == 'ADMIN' %}bg-danger-subtle text-danger{% elif u.role == 'FACULTY' %}bg-primary-subtle text-primary{% else %}bg-secondary-subtle text-secondary{% endif %} fw-bold d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                      {{ u.name|slice:":1"|upper }}
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">{{ u.name }}</div>
+                      {% if u.student_id %}
+                        <div class="text-muted small font-monospace" style="font-size: 0.75rem;">{{ u.student_id }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td class="small text-dark">{{ u.email }}</td>
+                <td>
+                  {% if u.role == 'ADMIN' %}
+                    <span class="badge bg-danger">Administrator</span>
+                  {% elif u.role == 'FACULTY' %}
+                    <span class="badge bg-primary">Faculty</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Student</span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted">
+                  {{ u.department|default:"General" }}
+                  {% if u.year %} &bull; {{ u.year }}{% endif %}
+                </td>
+                <td>
+                  {% if u.is_active %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                      <i class="bi bi-check-circle me-1"></i> Active
+                    </span>
+                  {% else %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                      <i class="bi bi-slash-circle me-1"></i> Inactive
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted">{{ u.created_at|date:"M d, Y" }}</td>
+                <td class="text-end">
+                  {% if u.id != current_user.id %}
+                    <form method="POST" action="{% url 'admin_toggle_user_status' u.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to {% if u.is_active %}deactivate{% else %}activate{% endif %} {{ u.name }}?');">
+                      {% csrf_token %}
+                      {% if u.is_active %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                          <i class="bi bi-person-x me-1"></i> Deactivate
+                        </button>
+                      {% else %}
+                        <button type="submit" class="btn btn-sm btn-outline-success">
+                          <i class="bi bi-person-check me-1"></i> Activate
+                        </button>
+                      {% endif %}
+                    </form>
+                  {% else %}
+                    <span class="badge bg-light text-muted border">Current User</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                No user accounts matched your search criteria.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
