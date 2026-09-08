@@ -39,17 +39,6 @@
         </div>
 
         <div class="card-body p-4 p-md-5">
-          <!-- 1-Click Quick Demo Fill Alert -->
-          <div class="alert alert-light border d-flex align-items-center justify-content-between p-2 mb-4 rounded-3" id="demoBanner">
-            <div class="small text-muted me-2" id="demoText">
-              <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
-              <span id="demoLabel">Student Demo Credentials</span>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-primary fw-semibold py-1 px-2" id="quickFillBtn" onclick="quickFill()">
-              Quick Fill
-            </button>
-          </div>
-
           <form method="POST" action="{% url 'login' %}" id="loginForm">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ next|default:'' }}">
@@ -105,9 +94,6 @@ const roleConfigs = {
     icon: "bi bi-person-badge",
     placeholder: "e.g. alex.student@campus.edu or STU-2026-00101",
     submitText: "Sign In to Student Portal",
-    demoUser: "alex.student@campus.edu",
-    demoPass: "student123",
-    demoLabel: "Alex Johnson (Student)",
     footerText: "New MVGR Student?",
     footerLinkText: "Register Student Account",
     footerLinkHref: "{% url 'register' %}"
@@ -121,9 +107,6 @@ const roleConfigs = {
     icon: "bi bi-envelope-at",
     placeholder: "e.g. faculty.cse@campus.edu",
     submitText: "Sign In to Faculty Portal",
-    demoUser: "faculty.cse@campus.edu",
-    demoPass: "faculty123",
-    demoLabel: "Prof. Alan Vance (CSE Faculty)",
     footerText: "Assigned department faculty only.",
     footerLinkText: "Contact Admin for Access",
     footerLinkHref: "#"
@@ -137,9 +120,6 @@ const roleConfigs = {
     icon: "bi bi-shield-check",
     placeholder: "e.g. admin@campus.edu",
     submitText: "Sign In to Admin Command Center",
-    demoUser: "admin@campus.edu",
-    demoPass: "admin123",
-    demoLabel: "Dr. Sarah Jenkins (Administrator)",
     footerText: "Restricted administrative zone.",
     footerLinkText: "Campus IT Support",
     footerLinkHref: "#"
@@ -176,18 +156,11 @@ function selectRole(role) {
   document.getElementById('loginIdIcon').innerHTML = `<i class="${cfg.icon}"></i>`;
   document.getElementById('login_id').placeholder = cfg.placeholder;
   document.getElementById('submitBtnText').textContent = cfg.submitText;
-  document.getElementById('demoLabel').textContent = cfg.demoLabel;
   document.getElementById('footerText').textContent = cfg.footerText;
   
   const footerLink = document.getElementById('footerLink');
   footerLink.textContent = cfg.footerLinkText;
   footerLink.href = cfg.footerLinkHref;
-}
-
-function quickFill() {
-  const cfg = roleConfigs[currentRole];
-  document.getElementById('login_id').value = cfg.demoUser;
-  document.getElementById('password').value = cfg.demoPass;
 }
 
 // Initial state setup

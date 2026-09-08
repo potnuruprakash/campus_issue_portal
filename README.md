@@ -85,8 +85,16 @@ In your Render Service Dashboard $\rightarrow$ **Environment**, add:
 | `SECRET_KEY` | *(A long random secret string)* | Production Django secret key |
 | `ALLOWED_HOSTS` | `campus-issue-portal.onrender.com` | Allowed hostnames |
 | `CSRF_TRUSTED_ORIGINS` | `https://campus-issue-portal.onrender.com` | Required for HTTPS forms |
+| `ADMIN_EMAIL` | *(Optional, e.g. `admin@campus.edu`)* | Default admin email if database is empty |
+| `ADMIN_PASSWORD` | *(Optional, e.g. `admin123`)* | Default admin password if database is empty |
 
-The deployment will automatically install dependencies, collect static files with WhiteNoise, run migrations, and seed default categories and demo accounts.
+> [!TIP]
+> **Creating or Resetting an Administrator Account:**
+> You can create a custom Admin account anytime locally or in Render Shell:
+> ```bash
+> python manage.py create_admin --email myadmin@campus.edu --password mysecretpassword --name "System Administrator"
+> ```
+> Or run `python manage.py create_admin` to be prompted interactively.
 
 ---
 
